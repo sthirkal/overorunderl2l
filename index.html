@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Over or Under? — Campus Software Spending</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF7FF;
+    --ink:#372F4E;
+    --ink-soft:#736A8C;
+    --pink:#FFD2E2;
+    --pink-deep:#FF8FAE;
+    --mint:#C7F3E3;
+    --mint-deep:#57C9A6;
+    --lavender:#E4DCFF;
+    --butter:#FFEFB0;
+    --card-shadow: 0 18px 40px rgba(90,70,140,0.14);
+    --radius: 26px;
+    box-sizing:border-box;
+  }
+  *{box-sizing:inherit;}
+  html,body{
+    margin:0;
+    min-height:100%;
+    background:
+      radial-gradient(circle at 12% 8%, var(--pink) 0%, transparent 40%),
+      radial-gradient(circle at 88% 14%, var(--mint) 0%, transparent 42%),
+      radial-gradient(circle at 50% 100%, var(--lavender) 0%, transparent 55%),
+      var(--cream);
+    background-attachment: fixed;
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  h1,h2,.money,.brand{font-family:'Baloo 2', sans-serif;}
+
+  .wrap{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+    min-height:100dvh;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom: 22px;
+  }
+  .brand{
+    font-size: 1.9rem;
+    font-weight:800;
+    margin:0;
+    letter-spacing: -0.02em;
+  }
+  .brand span{ color: var(--pink-deep); }
+  .brand span.u{ color: var(--mint-deep); }
+  header p{
+    margin: 6px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+
+  .scoreboard{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    margin: 18px 0 8px;
+    font-size:0.85rem;
+    color: var(--ink-soft);
+  }
+  .dots{ display:flex; gap:6px; }
+  .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: #E4DEF2;
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .dot.done-right{ background: var(--mint-deep); }
+  .dot.done-wrong{ background: var(--pink-deep); }
+  .dot.current{ transform: scale(1.4); background:#CFC5EA; }
+
+  main{ flex:1; display:flex; }
+
+  .card{
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--card-shadow);
+    padding: 30px 26px 26px;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .tag{
+    display:inline-block;
+    background: var(--lavender);
+    color:#6A5AC7;
+    font-weight:600;
+    font-size:0.72rem;
+    letter-spacing:0.02em;
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+
+  .institute{
+    font-size:1.5rem;
+    font-weight:700;
+    margin: 0 0 6px;
+    line-height:1.2;
+  }
+
+  .question{
+    color: var(--ink-soft);
+    font-size:1rem;
+    line-height:1.5;
+    margin: 0 0 20px;
+    max-width: 34ch;
+  }
+
+  .money{
+    font-size: 2.6rem;
+    font-weight:800;
+    background: linear-gradient(90deg, var(--pink-deep), #B98CE8 60%, var(--mint-deep));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    margin: 4px 0 26px;
+    line-height:1;
+  }
+
+  .buttons{
+    display:flex;
+    gap:14px;
+    width:100%;
+  }
+  .guess-btn{
+    flex:1;
+    padding: 16px 0;
+    border-radius: 18px;
+    border: none;
+    font-family:'Baloo 2', sans-serif;
+    font-size: 1.15rem;
+    font-weight:700;
+    cursor:pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .guess-btn:active{ transform: scale(0.96); }
+  .guess-btn.over{
+    background: var(--pink);
+    color: #A23D5B;
+    box-shadow: 0 8px 0 #F2A9BF;
+  }
+  .guess-btn.under{
+    background: var(--mint);
+    color: #1F7A61;
+    box-shadow: 0 8px 0 #92DFC3;
+  }
+  .guess-btn:disabled{ cursor:default; }
+  .guess-btn.dim{ opacity:0.35; box-shadow:none; transform:none; }
+  .guess-btn.picked{ transform: translateY(6px); box-shadow:none; }
+
+  .reveal{
+    margin-top: 22px;
+    width:100%;
+    max-height:0;
+    overflow:hidden;
+    transition: max-height 0.4s ease;
+  }
+  .reveal.open{ max-height: 340px; }
+
+  .verdict{
+    font-weight:700;
+    font-size:1.05rem;
+    border-radius:16px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .verdict.right{ background:#DFF8ED; color:#1F7A61; }
+  .verdict.wrong{ background:#FFE3EA; color:#A23D5B; }
+
+  .actual{
+    font-size:0.95rem;
+    color: var(--ink-soft);
+    line-height:1.55;
+    margin: 0 0 18px;
+  }
+  .actual b{ color: var(--ink); }
+
+  .next-btn{
+    width:100%;
+    padding:14px 0;
+    border-radius:16px;
+    border:none;
+    background: var(--ink);
+    color:#fff;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    cursor:pointer;
+  }
+  .next-btn:active{ transform: scale(0.97); }
+
+  .end-screen{ text-align:center; padding: 10px 4px; }
+  .end-screen .big-score{
+    font-size:3.2rem;
+    font-weight:800;
+    margin: 6px 0 2px;
+    color: var(--pink-deep);
+  }
+  .end-screen p{ color: var(--ink-soft); margin: 4px 0 22px; line-height:1.5; }
+
+  footer{
+    text-align:center;
+    margin-top: 26px;
+    font-size:0.78rem;
+    color: var(--ink-soft);
+    line-height:1.6;
+  }
+  footer a{ color:#8A78D9; text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:380px){
+    .money{ font-size:2.15rem; }
+    .institute{ font-size:1.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1 class="brand">Over <span>or</span> <span class="u">Under</span>?</h1>
+    <p>Real Indian campuses. Real software bills. Guess the number.</p>
+  </header>
+
+  <div class="scoreboard">
+    <span id="scoreText">Score: 0 / 0</span>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <main>
+    <div class="card" id="card">
+      <!-- populated by JS -->
+    </div>
+  </main>
+
+  <footer>
+    Figures are 5‑year (2020–21 to 2024–25) software/IT‑tool expenditure totals,
+    self‑reported by public institutions under India's Right to Information Act.
+    Some entries cover partial years, lump‑sum disclosures, or figures institutions
+    flagged as possibly including infrastructure costs — treat exact digits as
+    approximate. Data compiled from RTI responses gathered for the
+    <a href="https://fossunited.org" target="_blank" rel="noopener">FOSS United</a>
+    "License to Learn" project.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+
+  // ---- Data: 5-year total software/IT-tool spend per institute, from RTI responses ----
+  // threshold = the number shown in the question. isOver = whether the real total is
+  // actually OVER that threshold. Thresholds are deliberately picked far from what
+  // most people would expect, so the reveal lands as a surprise either way.
+  const QUESTIONS = [
+    {
+      name: "IIM Kozhikode",
+      threshold: "₹10 crore",
+      isOver: true,
+      actualLabel: "₹43.8 crore",
+      note: "One of India's top B‑schools quietly outspent almost every other institute in this dataset combined."
+    },
+    {
+      name: "IIM Indore",
+      threshold: "₹1 crore",
+      isOver: false,
+      actualLabel: "just ₹26.5 lakh",
+      note: "A globally ranked IIM, and its entire reported 5‑year software bill wouldn't cover a decent Mumbai flat."
+    },
+    {
+      name: "NIT Rourkela",
+      threshold: "₹5 crore",
+      isOver: true,
+      actualLabel: "₹28.1 crore",
+      note: "The institute itself flagged this figure as possibly bundling in infrastructure costs — but it's what they reported."
+    },
+    {
+      name: "NIT Sikkim",
+      threshold: "₹2 crore",
+      isOver: false,
+      actualLabel: "just ₹52.6 lakh",
+      note: "One of the newer NITs — a fraction of what its older, larger siblings report."
+    },
+    {
+      name: "IIIT Kancheepuram",
+      threshold: "₹1 crore",
+      isOver: true,
+      actualLabel: "₹7.5 crore",
+      note: "Given as a single lump figure with no year‑wise breakdown — but that number dwarfs most other IIITs."
+    },
+    {
+      name: "IIIT Sonepat",
+      threshold: "₹50 lakh",
+      isOver: false,
+      actualLabel: "just ₹11 lakh",
+      note: "Only 2 of the 5 years were disclosed — the rest came back as 'not available'."
+    },
+    {
+      name: "AIIMS Jodhpur",
+      threshold: "₹50 lakh",
+      isOver: true,
+      actualLabel: "₹2.87 crore",
+      note: "A medical institute — yet its software spend beats several engineering institutes on this list."
+    },
+    {
+      name: "NIT Puducherry",
+      threshold: "₹3 crore",
+      isOver: true,
+      actualLabel: "₹9.1 crore",
+      note: "The highest 5‑year total among NITs that gave a full, itemised breakdown."
+    },
+    {
+      name: "IIM Kashipur",
+      threshold: "₹2 crore",
+      isOver: false,
+      actualLabel: "just ₹82.6 lakh",
+      note: "A younger IIM — nowhere near the spend of the older, bigger‑name campuses."
+    },
+    {
+      name: "NIT Calicut",
+      threshold: "₹2 crore",
+      isOver: true,
+      actualLabel: "₹5.7 crore",
+      note: "Nearly triple the guess line — and one of the more transparent NITs in this dataset."
+    },
+    {
+      name: "IIIT Allahabad",
+      threshold: "₹1 crore",
+      isOver: true,
+      actualLabel: "₹3.7 crore",
+      note: "One of the oldest IIITs, and it shows in the software budget too."
+    },
+    {
+      name: "IIM Visakhapatnam",
+      threshold: "₹3 crore",
+      isOver: false,
+      actualLabel: "just ₹1.27 crore",
+      note: "Another newer IIM spending well under half the guess line."
+    }
+  ];
+
+  // Shuffle once per load so repeat plays don't feel identical
+  for(let i=QUESTIONS.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [QUESTIONS[i],QUESTIONS[j]] = [QUESTIONS[j],QUESTIONS[i]];
+  }
+
+  const card = document.getElementById('card');
+  const scoreText = document.getElementById('scoreText');
+  const dotsEl = document.getElementById('dots');
+
+  let current = 0;
+  let score = 0;
+  let answered = false;
+  const results = new Array(QUESTIONS.length).fill(null); // null | 'right' | 'wrong'
+
+  function renderDots(){
+    dotsEl.innerHTML = '';
+    QUESTIONS.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      if(results[i] === 'right') d.classList.add('done-right');
+      else if(results[i] === 'wrong') d.classList.add('done-wrong');
+      else if(i === current) d.classList.add('current');
+      dotsEl.appendChild(d);
+    });
+  }
+
+  function renderScore(){
+    const attempted = results.filter(r => r !== null).length;
+    scoreText.textContent = `Score: ${score} / ${attempted}`;
+  }
+
+  function renderQuestion(){
+    answered = false;
+    const q = QUESTIONS[current];
+    card.innerHTML = `
+      <span class="tag">Question ${current+1} of ${QUESTIONS.length}</span>
+      <h2 class="institute">${q.name}</h2>
+      <p class="question">Do you think its software expenditure over the last 5 years is</p>
+      <div class="money">${q.threshold}?</div>
+      <div class="buttons">
+        <button class="guess-btn over" data-guess="over">OVER</button>
+        <button class="guess-btn under" data-guess="under">UNDER</button>
+      </div>
+      <div class="reveal" id="reveal"></div>
+    `;
+    card.querySelectorAll('.guess-btn').forEach(btn=>{
+      btn.addEventListener('click', () => handleGuess(btn.dataset.guess));
+    });
+    renderDots();
+    renderScore();
+  }
+
+  function handleGuess(guess){
+    if(answered) return;
+    answered = true;
+    const q = QUESTIONS[current];
+    const correctGuess = q.isOver ? 'over' : 'under';
+    const isCorrect = guess === correctGuess;
+
+    if(isCorrect) score++;
+    results[current] = isCorrect ? 'right' : 'wrong';
+
+    card.querySelectorAll('.guess-btn').forEach(btn=>{
+      btn.disabled = true;
+      if(btn.dataset.guess === guess){
+        btn.classList.add('picked');
+      } else {
+        btn.classList.add('dim');
+      }
+    });
+
+    const reveal = document.getElementById('reveal');
+    reveal.innerHTML = `
+      <div class="verdict ${isCorrect ? 'right' : 'wrong'}">
+        ${isCorrect ? "Correct! 🎉" : "Nope — most people get this one wrong."}
+      </div>
+      <p class="actual">
+        The real 5‑year total at <b>${q.name}</b> was <b>${q.actualLabel}</b> —
+        that's ${q.isOver ? 'over' : 'under'} the ${q.threshold} line.<br>${q.note}
+      </p>
+      <button class="next-btn" id="nextBtn">
+        ${current < QUESTIONS.length - 1 ? 'Next question' : 'See your score'}
+      </button>
+    `;
+    reveal.classList.add('open');
+    document.getElementById('nextBtn').addEventListener('click', goNext);
+    renderDots();
+    renderScore();
+  }
+
+  function goNext(){
+    current++;
+    if(current >= QUESTIONS.length){
+      renderEnd();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  function renderEnd(){
+    const pct = Math.round((score/QUESTIONS.length)*100);
+    let line;
+    if(pct === 100) line = "Perfect score — either you did your homework, or you just get how weird institutional budgets are.";
+    else if(pct >= 70) line = "Sharp guessing — these numbers fool most people more than that.";
+    else if(pct >= 40) line = "About average — campus software budgets really don't follow intuition.";
+    else line = "Rough round — but that's the point. These figures are deliberately unintuitive.";
+
+    card.innerHTML = `
+      <div class="end-screen">
+        <span class="tag">Final score</span>
+        <div class="big-score">${score} / ${QUESTIONS.length}</div>
+        <p>${line}</p>
+        <button class="next-btn" id="restartBtn">Play again</button>
+      </div>
+    `;
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      current = 0; score = 0;
+      results.fill(null);
+      for(let i=QUESTIONS.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [QUESTIONS[i],QUESTIONS[j]] = [QUESTIONS[j],QUESTIONS[i]];
+      }
+      renderQuestion();
+    });
+    renderDots();
+  }
+
+  renderQuestion();
+})();
+</script>
+</body>
+</html>
